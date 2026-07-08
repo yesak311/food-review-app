@@ -19,4 +19,11 @@ const validateReview = [
   handleValidation,
 ];
 
-module.exports = { validateRegister, validateReview };
+const validateRestaurant = [
+  body('name').trim().isLength({ min: 1, max: 255 }),
+  body('cuisine').optional({ checkFalsy: true }).trim().isLength({ max: 100 }),
+  body('location').optional({ checkFalsy: true }).trim().isLength({ max: 255 }),
+  handleValidation,
+];
+
+module.exports = { validateRegister, validateReview, validateRestaurant };

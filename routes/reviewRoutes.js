@@ -6,5 +6,6 @@ const { validateReview } = require('../middleware/validators');
 
 router.put('/:id', requireAuth, validateReview, reviewController.update);
 router.delete('/:id', requireAuth, reviewController.remove);
+router.post('/:id/vote', requireAuth, reviewController.vote);
 
 module.exports = router;

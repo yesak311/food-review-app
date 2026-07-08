@@ -35,7 +35,7 @@ const login = async (req, res) => {
     process.env.JWT_SECRET,
     { expiresIn: '2h' }
   );
-  res.json({ token, username: user.username });
+  res.json({ token, username: user.username, role: user.role });
 };
 
 module.exports = { register, login };

@@ -1,4 +1,5 @@
 const ReviewModel = require('../models/ReviewModel');
+const ReviewVoteModel = require('../models/ReviewVoteModel');
 
 const create = async (req, res) => {
   const { title, content, rating } = req.body;
@@ -28,7 +29,9 @@ const update = async (req, res) => {
 const remove = async (req, res) => {
   const review = await ReviewModel.findById(req.params.id);
   if (!review) return res.status(404).json({ error: 'Review not found' });
-  if (review.user_id !== req.user.id) {
+  const isOwner = review.user_id === req.user.id;
+  const isAdmin = req.user.role === 'admin';
+  if (!isOwner && !isAdmin) {
     return res.status(403).json({ error: 'You can only modify your own reviews' });
   }
 
@@ -36,4 +39,18 @@ const remove = async (req, res) => {
   res.status(204).send();
 };
 
-module.exports = { create, update, remove };
+const vote = async (req, res) => {
+  const { voteType } = req.body;
+  if (!['helpful', 'unhelpful'].includes(voteType)) {
+    return res.status(400).json({ error: 'voteType must be "helpful" or "unhelpful"' });
+  }
+
+  const review = await ReviewModel.findById(req.params.id);
+  if (!review) return res.status(404).json({ error: 'Review not found' });
+
+  await ReviewVoteModel.upsertVote(req.params.id, req.user.id, voteType);
+  const counts = await ReviewVoteModel.getVoteCounts(req.params.id);
+  res.json(counts);
+};
+
+module.exports = { create, update, remove, vote };

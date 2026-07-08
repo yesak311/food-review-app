@@ -28,10 +28,14 @@ const remove = async (id) => {
 
 const findByRestaurantId = async (restaurantId) => {
   const result = await pool.query(
-    `SELECT rev.*, u.username
+    `SELECT rev.*, u.username,
+            COUNT(*) FILTER (WHERE rv.vote_type = 'helpful')::int AS helpful_count,
+            COUNT(*) FILTER (WHERE rv.vote_type = 'unhelpful')::int AS unhelpful_count
      FROM reviews rev
      JOIN users u ON u.id = rev.user_id
+     LEFT JOIN review_votes rv ON rv.review_id = rev.id
      WHERE rev.restaurant_id = $1
+     GROUP BY rev.id, u.username
      ORDER BY rev.created_at DESC`,
     [restaurantId]
   );
