@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Add Restaurant — Food Review App</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <nav id="nav"></nav>
+
+  <main>
+    <h1>Add a Restaurant</h1>
+    <p id="error" class="error"></p>
+    <form id="add-restaurant-form" class="form-card" enctype="multipart/form-data">
+      <label for="name">Name</label>
+      <input type="text" id="name" required />
+
+      <label for="cuisine">Cuisine</label>
+      <input type="text" id="cuisine" placeholder="e.g. Ethiopian, Italian..." />
+
+      <label for="location">Location</label>
+      <input type="text" id="location" placeholder="e.g. Bole, CMC..." />
+
+      <label for="photo">Photo (optional)</label>
+      <input type="file" id="photo" accept="image/*" />
+
+      <button type="submit">Add Restaurant</button>
+    </form>
+  </main>
+
+  <script src="/js/nav.js"></script>
+  <script src="/js/add-restaurant.js"></script>
+</body>
+</html>

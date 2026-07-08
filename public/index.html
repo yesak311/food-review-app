@@ -9,11 +9,30 @@
   <nav id="nav"></nav>
 
   <main>
-    <h1>Restaurants</h1>
-    <div id="restaurant-list"></div>
+    <div class="page-header">
+      <div>
+        <h1>Restaurants</h1>
+        <p class="subtitle">Browse and rate places to eat.</p>
+      </div>
+    </div>
+
+    <form id="filter-form" class="filter-bar">
+      <input type="text" id="filter-cuisine" placeholder="Filter by cuisine..." />
+      <input type="text" id="filter-location" placeholder="Filter by location..." />
+      <select id="filter-sort">
+        <option value="rating">Sort: Top rated</option>
+        <option value="newest">Sort: Newest</option>
+        <option value="name">Sort: Name (A-Z)</option>
+      </select>
+      <button type="submit" class="btn-primary">Apply</button>
+    </form>
+
+    <div id="restaurant-list" class="restaurant-grid"></div>
+    <div id="pagination" class="pagination"></div>
   </main>
 
   <script src="/js/nav.js"></script>
+  <script src="/js/stars.js"></script>
   <script src="/js/main.js"></script>
 </body>
 </html>

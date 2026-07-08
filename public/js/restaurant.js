@@ -1,59 +1,103 @@
 const restaurantId = new URLSearchParams(window.location.search).get('id');
 const token = localStorage.getItem('token');
 const username = localStorage.getItem('username');
+const role = localStorage.getItem('role');
 
 function renderRestaurantInfo(restaurant) {
+  const photo = restaurant.image_url
+    ? `<img src="${restaurant.image_url}" alt="${restaurant.name}" />`
+    : '';
+
   document.getElementById('restaurant-info').innerHTML = `
-    <h1>${restaurant.name}</h1>
-    <p>${restaurant.cuisine ?? ''} — ${restaurant.location ?? ''}</p>
+    <div class="restaurant-banner">
+      ${photo}
+      <div class="banner-info">
+        <h1>${restaurant.name}</h1>
+        <p class="card-meta">${restaurant.cuisine ?? ''}${restaurant.cuisine && restaurant.location ? ' — ' : ''}${restaurant.location ?? ''}</p>
+      </div>
+    </div>
   `;
 }
 
 function renderReviews(reviews) {
   const container = document.getElementById('review-list');
-  container.innerHTML = '';
 
   if (reviews.length === 0) {
-    container.innerHTML = '<p>No reviews yet.</p>';
+    container.innerHTML = '<p class="empty-state">No reviews yet.</p>';
     return;
   }
 
-  for (const review of reviews) {
-    const div = document.createElement('div');
-    div.className = 'review';
-    const isOwner = username === review.username;
-
-    div.innerHTML = `
-      <strong>${review.title}</strong> — ⭐ ${review.rating} by ${review.username}
+  container.innerHTML = reviews
+    .map(
+      (review) => `
+    <div class="review" data-review-id="${review.id}">
+      <div class="review-header">
+        <strong>${review.title}</strong>
+        ${renderStars(review.rating)}
+      </div>
+      <p class="review-meta">by ${review.username}</p>
       <p>${review.content}</p>
-      ${
-        isOwner
-          ? `<div class="review-actions">
-               <button data-action="edit" data-id="${review.id}">Edit</button>
-               <button data-action="delete" data-id="${review.id}">Delete</button>
-             </div>`
-          : ''
-      }
-    `;
-    container.appendChild(div);
+      <div class="review-footer">
+        <div class="vote-group">
+          <button class="btn-vote" data-vote="helpful">👍 Helpful (${review.helpful_count})</button>
+          <button class="btn-vote" data-vote="unhelpful">👎 Not helpful (${review.unhelpful_count})</button>
+        </div>
+        <div class="review-actions">
+          ${username === review.username ? `<button class="btn-secondary" data-action="edit">Edit</button>` : ''}
+          ${
+            username === review.username || role === 'admin'
+              ? `<button class="btn-danger" data-action="delete">${role === 'admin' && username !== review.username ? 'Remove (admin)' : 'Delete'}</button>`
+              : ''
+          }
+        </div>
+      </div>
+    </div>
+  `
+    )
+    .join('');
 
-    if (isOwner) {
-      div.querySelector('[data-action="edit"]').addEventListener('click', () => startEdit(review));
-      div.querySelector('[data-action="delete"]').addEventListener('click', () => deleteReview(review.id));
-    }
-  }
+  container.querySelectorAll('.review').forEach((div) => {
+    const id = div.dataset.reviewId;
+    const review = reviews.find((r) => String(r.id) === id);
+
+    div.querySelectorAll('[data-vote]').forEach((btn) => {
+      btn.addEventListener('click', () => vote(id, btn.dataset.vote));
+    });
+
+    const editBtn = div.querySelector('[data-action="edit"]');
+    if (editBtn) editBtn.addEventListener('click', () => startEdit(review));
+
+    const deleteBtn = div.querySelector('[data-action="delete"]');
+    if (deleteBtn) deleteBtn.addEventListener('click', () => deleteReview(id));
+  });
 }
 
 async function loadRestaurant() {
   const res = await fetch(`/api/restaurants/${restaurantId}`);
   if (!res.ok) {
-    document.getElementById('restaurant-info').innerHTML = '<p>Restaurant not found.</p>';
+    document.getElementById('restaurant-info').innerHTML = '<p class="empty-state">Restaurant not found.</p>';
     document.getElementById('review-form').remove();
     return;
   }
   const { restaurant, reviews } = await res.json();
   renderRestaurantInfo(restaurant);
   renderReviews(reviews);
+}
+
+async function vote(reviewId, voteType) {
+  if (!token) {
+    window.location.href = '/login.html';
+    return;
+  }
+  await fetch(`/api/reviews/${reviewId}/vote`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ voteType }),
+  });
+  loadRestaurant();
 }
 
 function startEdit(review) {
@@ -64,6 +108,7 @@ function startEdit(review) {
   const form = document.getElementById('review-form');
   form.dataset.editingId = review.id;
   form.querySelector('button[type="submit"]').textContent = 'Update Review';
+  form.scrollIntoView({ behavior: 'smooth' });
 }
 
 function resetForm() {

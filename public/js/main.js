@@ -1,25 +1,100 @@
-async function loadRestaurants() {
-  const res = await fetch('/api/restaurants');
-  const restaurants = await res.json();
-  const container = document.getElementById('restaurant-list');
-  container.innerHTML = '';
+const role = localStorage.getItem('role');
+const token = localStorage.getItem('token');
 
-  if (restaurants.length === 0) {
-    container.innerHTML = '<p>No restaurants yet.</p>';
+let currentPage = 1;
+const PAGE_SIZE = 9;
+
+function buildQuery() {
+  const cuisine = document.getElementById('filter-cuisine').value.trim();
+  const location = document.getElementById('filter-location').value.trim();
+  const sort = document.getElementById('filter-sort').value;
+
+  const params = new URLSearchParams({ sort, page: currentPage, limit: PAGE_SIZE });
+  if (cuisine) params.set('cuisine', cuisine);
+  if (location) params.set('location', location);
+  return params.toString();
+}
+
+function renderCard(r) {
+  const photo = r.image_url
+    ? `<img class="card-photo" src="${r.image_url}" alt="${r.name}" />`
+    : `<div class="card-photo placeholder">🍽️</div>`;
+
+  return `
+    <div class="card">
+      ${photo}
+      <div class="card-body">
+        <h2>${r.name}</h2>
+        <p class="card-meta">${r.cuisine ?? ''}${r.cuisine && r.location ? ' — ' : ''}${r.location ?? ''}</p>
+        ${renderStars(r.avg_rating)} <span class="card-meta">(${r.review_count} reviews)</span>
+        <div class="card-actions">
+          <a href="/restaurant.html?id=${r.id}">View reviews</a>
+          ${role === 'admin' ? `<button class="btn-danger" data-delete-id="${r.id}">Delete</button>` : ''}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+async function deleteRestaurant(id) {
+  if (!confirm('Delete this restaurant? This cannot be undone.')) return;
+  await fetch(`/api/restaurants/${id}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  loadRestaurants();
+}
+
+function renderPagination(total) {
+  const totalPages = Math.max(Math.ceil(total / PAGE_SIZE), 1);
+  const container = document.getElementById('pagination');
+
+  if (totalPages <= 1) {
+    container.innerHTML = '';
     return;
   }
 
-  for (const r of restaurants) {
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.innerHTML = `
-      <h2>${r.name}</h2>
-      <p>${r.cuisine ?? ''} — ${r.location ?? ''}</p>
-      <p>⭐ ${r.avg_rating ?? 'No ratings yet'} (${r.review_count} reviews)</p>
-      <a href="/restaurant.html?id=${r.id}">View reviews</a>
-    `;
-    container.appendChild(card);
+  container.innerHTML = `
+    <button class="btn-secondary" id="prev-page" ${currentPage <= 1 ? 'disabled' : ''}>Previous</button>
+    <span>Page ${currentPage} of ${totalPages}</span>
+    <button class="btn-secondary" id="next-page" ${currentPage >= totalPages ? 'disabled' : ''}>Next</button>
+  `;
+
+  document.getElementById('prev-page').addEventListener('click', () => {
+    currentPage -= 1;
+    loadRestaurants();
+  });
+  document.getElementById('next-page').addEventListener('click', () => {
+    currentPage += 1;
+    loadRestaurants();
+  });
+}
+
+async function loadRestaurants() {
+  const res = await fetch(`/api/restaurants?${buildQuery()}`);
+  const { restaurants, total } = await res.json();
+  const container = document.getElementById('restaurant-list');
+
+  if (restaurants.length === 0) {
+    container.innerHTML = '<p class="empty-state">No restaurants match your filters.</p>';
+    document.getElementById('pagination').innerHTML = '';
+    return;
+  }
+
+  container.innerHTML = restaurants.map(renderCard).join('');
+  renderPagination(total);
+
+  if (role === 'admin') {
+    container.querySelectorAll('[data-delete-id]').forEach((btn) => {
+      btn.addEventListener('click', () => deleteRestaurant(btn.dataset.deleteId));
+    });
   }
 }
+
+document.getElementById('filter-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  currentPage = 1;
+  loadRestaurants();
+});
 
 loadRestaurants();

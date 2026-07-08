@@ -18,5 +18,6 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
 
   localStorage.setItem('token', data.token);
   localStorage.setItem('username', data.username);
+  localStorage.setItem('role', data.role);
   window.location.href = '/';
 });
