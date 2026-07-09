@@ -10,7 +10,7 @@ function renderNav() {
       ${
         token
           ? `<a class="nav-link nav-cta" href="/add-restaurant.html">+ Add Restaurant</a>
-             <span class="nav-user">${username}${role === 'admin' ? ' <span class="admin-badge">admin</span>' : ''}</span>
+             <span class="nav-user">${escapeHtml(username)}${role === 'admin' ? ' <span class="admin-badge">admin</span>' : ''}</span>
              <button id="logout-btn">Logout</button>`
           : `<a class="nav-link" href="/login.html">Login</a><a class="nav-link nav-cta" href="/register.html">Register</a>`
       }

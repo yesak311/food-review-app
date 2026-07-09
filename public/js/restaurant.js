@@ -5,15 +5,15 @@ const role = localStorage.getItem('role');
 
 function renderRestaurantInfo(restaurant) {
   const photo = restaurant.image_url
-    ? `<img src="${restaurant.image_url}" alt="${restaurant.name}" />`
+    ? `<img src="${escapeHtml(restaurant.image_url)}" alt="${escapeHtml(restaurant.name)}" />`
     : '';
 
   document.getElementById('restaurant-info').innerHTML = `
     <div class="restaurant-banner">
       ${photo}
       <div class="banner-info">
-        <h1>${restaurant.name}</h1>
-        <p class="card-meta">${restaurant.cuisine ?? ''}${restaurant.cuisine && restaurant.location ? ' — ' : ''}${restaurant.location ?? ''}</p>
+        <h1>${escapeHtml(restaurant.name)}</h1>
+        <p class="card-meta">${escapeHtml(restaurant.cuisine)}${restaurant.cuisine && restaurant.location ? ' — ' : ''}${escapeHtml(restaurant.location)}</p>
       </div>
     </div>
   `;
@@ -32,11 +32,11 @@ function renderReviews(reviews) {
       (review) => `
     <div class="review" data-review-id="${review.id}">
       <div class="review-header">
-        <strong>${review.title}</strong>
+        <strong>${escapeHtml(review.title)}</strong>
         ${renderStars(review.rating)}
       </div>
-      <p class="review-meta">by ${review.username}</p>
-      <p>${review.content}</p>
+      <p class="review-meta">by ${escapeHtml(review.username)}</p>
+      <p>${escapeHtml(review.content)}</p>
       <div class="review-footer">
         <div class="vote-group">
           <button class="btn-vote" data-vote="helpful">👍 Helpful (${review.helpful_count})</button>

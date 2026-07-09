@@ -17,15 +17,15 @@ function buildQuery() {
 
 function renderCard(r) {
   const photo = r.image_url
-    ? `<img class="card-photo" src="${r.image_url}" alt="${r.name}" />`
+    ? `<img class="card-photo" src="${escapeHtml(r.image_url)}" alt="${escapeHtml(r.name)}" />`
     : `<div class="card-photo placeholder">🍽️</div>`;
 
   return `
     <div class="card">
       ${photo}
       <div class="card-body">
-        <h2>${r.name}</h2>
-        <p class="card-meta">${r.cuisine ?? ''}${r.cuisine && r.location ? ' — ' : ''}${r.location ?? ''}</p>
+        <h2>${escapeHtml(r.name)}</h2>
+        <p class="card-meta">${escapeHtml(r.cuisine)}${r.cuisine && r.location ? ' — ' : ''}${escapeHtml(r.location)}</p>
         ${renderStars(r.avg_rating)} <span class="card-meta">(${r.review_count} reviews)</span>
         <div class="card-actions">
           <a href="/restaurant.html?id=${r.id}">View reviews</a>
