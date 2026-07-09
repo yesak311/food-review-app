@@ -22,6 +22,7 @@ const getVoteCounts = async (reviewId) => {
     [reviewId]
   );
   return result.rows[0];
+  
 };
 
 module.exports = { upsertVote, getVoteCounts };

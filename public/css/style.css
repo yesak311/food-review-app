@@ -133,18 +133,29 @@ main {
 
 .filter-bar {
   display: flex;
+  flex-direction: row;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 0.5rem;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 1rem;
+  padding: 0.6rem;
   margin-bottom: 1.5rem;
 }
 
 .filter-bar input,
 .filter-bar select {
-  flex: 1 1 160px;
+  flex: 0 0 auto;
+  width: 140px;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.85rem;
+}
+
+.filter-bar button[type='submit'] {
+  padding: 0.35rem 0.8rem;
+  font-size: 0.85rem;
 }
 
 
